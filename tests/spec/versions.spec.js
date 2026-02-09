@@ -18,7 +18,7 @@
  */
 
 const semver = require('semver');
-const versions = require('../../../lib/versions');
+const versions = require('../../lib/versions');
 
 // These tests can not run on windows.
 if (process.platform === 'darwin') {
@@ -49,12 +49,6 @@ if (process.platform === 'darwin') {
 
             it('should find xcodebuild version.', () => {
                 return versions.get_tool_version('xcodebuild').then((version) => {
-                    expect(version).not.toBe(undefined);
-                });
-            }, 10000);
-
-            it('should find ios-sim version.', () => {
-                return versions.get_tool_version('ios-sim').then((version) => {
                     expect(version).not.toBe(undefined);
                 });
             }, 10000);

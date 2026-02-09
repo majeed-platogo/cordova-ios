@@ -1,5 +1,3 @@
-// swift-tools-version:5.5
-
 /**
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -19,29 +17,28 @@
     under the License.
 */
 
-import PackageDescription
+const fs = require('node:fs');
+const path = require('node:path');
+const simctl = require('simctl');
+const listEmulatorImages = require('../../lib/listEmulatorImages');
 
-let package = Package(
-    name: "Cordova",
-    platforms: [
-        .iOS(.v13),
-        .macCatalyst(.v13)
-    ],
-    products: [
-        .library(name: "Cordova", targets: ["Cordova"])
-    ],
-    dependencies: [],
-    targets: [
-        .target(
-            name: "Cordova",
-            path: "CordovaLib/",
-            exclude: ["Info.plist"],
-            resources: [
-                .copy("PrivacyInfo.xcprivacy")
-            ],
-            cSettings: [
-                .headerSearchPath("Classes/Private")
-            ]
-        )
-    ]
-)
+let json;
+
+function fixtureJson (output) {
+    const file = path.resolve(__dirname, `fixtures/${output}`);
+    return JSON.parse(fs.readFileSync(file, { encoding: 'utf-8' }).toString());
+}
+
+describe('listEmulatorImages', () => {
+    describe('run method', () => {
+        beforeEach(() => {
+            json = fixtureJson('simctl-list.json');
+            spyOn(simctl, 'list').and.callFake(() => ({ json }));
+        });
+
+        it('should delegate to the simctl list method', () => {
+            listEmulatorImages.run();
+            expect(simctl.list).toHaveBeenCalled();
+        });
+    });
+});

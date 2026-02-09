@@ -8,12 +8,12 @@
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 # 
-# http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 # 
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-#  KIND, either express or implied.  See the License for the
+# KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
 #
@@ -32,6 +32,7 @@ Cordova iOS is an iOS application library that allows for Cordova-based projects
 
 ## Requirements
 
+* iOS 13+
 * Xcode 15.x or greater. Download it at the [Apple Developer - Downloads](https://developer.apple.com/downloads) or the [Mac App Store](https://apps.apple.com/us/app/xcode/id497799835?mt=12).
 * [Node.js](https://nodejs.org) 20.5.0 or greater
 
@@ -69,7 +70,23 @@ npm install
 npm test
 ```
 
+## Install Nightly Build
+
+```bash
+cordova platform add ios@nightly
+```
+
+### Notes
+
+Nightly builds are **not recommended for production apps**. They are intended for testing purposes. This allows users either to check if recent changes in the main branch have fixed existing issues or to identify new bugs before an official release.
+
+Nightly builds are generated daily and may be **unstable**.
+
+
+See [Apache Cordova - Nightly Builds](https://cordova.apache.org/contribute/nightly_builds.html) for more details.
+
 ## Further reading
 
-* [Apache Cordova](https://cordova.apache.org/)
+* [Cordova iOS Platform Guide](https://cordova.apache.org/docs/en/dev/guide/platforms/ios/index.html)
 * [Cordova iOS API Documentation](https://apache.github.io/cordova-ios/)
+* [Apache Cordova](https://cordova.apache.org/)

@@ -266,13 +266,6 @@
 
     [self updateSettings:settings];
 
-    // check if content thread has died on resume
-    NSLog(@"%@", @"CDVWebViewEngine will reload WKWebView if required on resume");
-    [[NSNotificationCenter defaultCenter]
-        addObserver:self
-           selector:@selector(onAppWillEnterForeground:)
-               name:UIApplicationWillEnterForegroundNotification object:nil];
-
     NSLog(@"Using WKWebView");
 }
 
@@ -285,37 +278,6 @@
     [super dispose];
 }
 
-- (void) onAppWillEnterForeground:(NSNotification*)notification {
-    if ([self shouldReloadWebView]) {
-        NSLog(@"%@", @"CDVWebViewEngine reloading!");
-        [(WKWebView*)_engineWebView reload];
-    }
-}
-
-- (BOOL)shouldReloadWebView
-{
-    WKWebView* wkWebView = (WKWebView*)_engineWebView;
-    return [self shouldReloadWebView:wkWebView.URL title:wkWebView.title];
-}
-
-- (BOOL)shouldReloadWebView:(NSURL*)location title:(NSString*)title
-{
-    BOOL title_is_nil = (title == nil);
-    BOOL location_is_blank = [[location absoluteString] isEqualToString:@"about:blank"];
-
-    BOOL reload = (title_is_nil || location_is_blank);
-
-#ifdef DEBUG
-    NSLog(@"%@", @"CDVWebViewEngine shouldReloadWebView::");
-    NSLog(@"CDVWebViewEngine shouldReloadWebView title: %@", title);
-    NSLog(@"CDVWebViewEngine shouldReloadWebView location: %@", [location absoluteString]);
-    NSLog(@"CDVWebViewEngine shouldReloadWebView reload: %u", reload);
-#endif
-
-    return reload;
-}
-
-
 - (id)loadRequest:(NSURLRequest*)request
 {
     if ([self canLoadRequest:request]) { // can load, differentiate between file urls and other schemes
@@ -323,7 +285,7 @@
             NSURL* readAccessUrl = [request.URL URLByDeletingLastPathComponent];
             return [(WKWebView*)_engineWebView loadFileURL:request.URL allowingReadAccessToURL:readAccessUrl];
         } else if (request.URL.fileURL) {
-            NSURL* startURL = [NSURL URLWithString:((CDVViewController *)self.viewController).startPage];
+            NSURL* startURL = [NSURL URLWithString:self.viewController.startPage];
             NSString* startFilePath = [self.commandDelegate pathForResource:[startURL path]];
             NSURL *url = [[NSURL URLWithString:self.CDV_ASSETS_URL] URLByAppendingPathComponent:request.URL.path];
             if ([request.URL.path isEqualToString:startFilePath]) {
@@ -335,7 +297,8 @@
             if(request.URL.fragment) {
                 url = [NSURL URLWithString:[@"#" stringByAppendingString:request.URL.fragment] relativeToURL:url];
             }
-            request = [NSURLRequest requestWithURL:url];
+            // We ignore any existing cached data, since we're already loading it from the filesystem
+            request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:request.timeoutInterval];
         }
         return [(WKWebView*)_engineWebView loadRequest:request];
     } else { // can't load, print out error
@@ -565,7 +528,14 @@
 
 - (void)webViewWebContentProcessDidTerminate:(WKWebView *)webView
 {
-    [webView reload];
+    CDVSettingsDictionary *settings = self.commandDelegate.settings;
+    NSString *recoveryBehavior = [settings cordovaSettingForKey:@"CrashRecoveryBehavior"];
+
+    if ([recoveryBehavior isEqualToString:@"reload"]) {
+        [self.viewController loadStartPage];
+    } else {
+        [webView reload];
+    }
 }
 
 - (BOOL)defaultResourcePolicyForURL:(NSURL*)url

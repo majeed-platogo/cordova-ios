@@ -119,24 +119,19 @@ Plugins should prefer accessing the view controller using their ``CDVPlugin/view
   
 ### UIView scrollView property deprecation
 
-The `scrollView` property added as a global category extension to `UIView` is now deprecated in Objective C code and **removed entirely in Swift code**. This is to prevent conflicts with other Swift classes that extend `UIView` and have their own `scrollView` properties.
+The `scrollView` property added as a global category extension to `UIView` by Cordova is now deprecated in Objective C code and **removed entirely in Swift code**. This is to prevent conflicts with other Swift classes that extend `UIView` and have their own `scrollView` properties. You can read more about the scrollView property in the Cordova discussion [Cordova iOS 8.x Upgrade Guide: UIView scrollView property deprecation](https://github.com/apache/cordova/discussions/565#discussioncomment-14621123).
 
 You can still access the `scrollView` property of the web view by dynamically invoking the method:
 
 ```objc
 // Old code
-UIScrollView *scroller = self.webView.scrollView;
+UIScrollView *scrollView = self.webView.scrollView;
 ```
 
 ```objc
 // New code (Objective-C)
-#import <objc/message.h>
-
-UIScrollView *scroller;
-SEL scrollViewSelector = NSSelectorFromString(@"scrollView");
-
-if ([self.webView respondsToSelector:scrollViewSelector]) {
-    scroller = ((id (*)(id, SEL))objc_msgSend)(self.webView, scrollViewSelector);
+if ([self.webView respondsToSelector:@selector(scrollView)]) {
+    UIScrollView *scrollView = [self.webView performSelector:@selector(scrollView)];
 }
 ```
 
@@ -170,6 +165,26 @@ To align with Xcode defaults and improve long-term maintainability, the precompi
 // New code (Swift)
 import Foundation
 import UIKit
+```
+
+### `CDVPluginResult` Swift optionality
+
+The `CDVPluginResult` constructors have been annotated as returning a non-null object, which means the constructor in Swift no longer returns an optional value that needs to be unwrapped. However, this means that attempts to unwrap the value will now be errors.
+
+In most cases, you shouldn't need to worry about the optionality of the result before passing it to `commandDelegate.send` but if you are setting other options then you might need to explicitly store as an optional for backwards compatibility:
+
+```swift
+// Old code (Swift)
+let result = CDVPluginResult(status: .ok, messageAs: "some value")!
+result.setKeepCallbackAs(true)
+self.commandDelegate.send(result, callbackId: callback)
+```
+
+```swift
+// New code (Swift)
+let result: CDVPluginResult? = CDVPluginResult(status: .ok, messageAs: "some value")
+result?.setKeepCallbackAs(true)
+self.commandDelegate.send(result, callbackId: callback)
 ```
 
 ## Other Major Changes
@@ -261,7 +276,7 @@ The following headers are deprecated due to adding global category extensions to
 * `<Cordova/NSMutableArray+QueueAdditions.h>`  
   This was only ever intended as an internal implementation detail.
 
-* `<Cordova/CDV.h>`
+* `<Cordova/CDV.h>`  
   Use `<Cordova/Cordova.h>` instead.
 
 ## Other Changes
@@ -330,3 +345,5 @@ The following headers are deprecated due to adding global category extensions to
 
   * The ``CDVViewController/showLaunchScreen:`` method is deprecated.  
     This method has been renamed to ``CDVViewController/showSplashScreen:``.
+
+  * Added a new ``CDVViewController/loadStartPage`` method to load the initial starting page in the web view, replacing any existing content.

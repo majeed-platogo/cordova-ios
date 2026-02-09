@@ -1,6 +1,6 @@
 {
   "name": "cordova-ios",
-  "version": "8.0.0-beta.1",
+  "version": "8.0.1-dev.0",
   "description": "cordova-ios release",
   "types": "./types/index.d.ts",
   "main": "lib/Api.js",
@@ -16,12 +16,10 @@
   "scripts": {
     "prepare": "cordova-js build > templates/project/www/cordova.js",
     "pretest": "npm run lint",
-    "test": "npm run coverage && npm run objc-tests",
-    "coverage": "c8 jasmine --config=tests/spec/coverage.json",
-    "e2e-tests": "jasmine tests/spec/create.spec.js",
-    "objc-tests": "xcodebuild -quiet test -workspace tests/cordova-ios.xcworkspace -scheme CordovaTestApp -destination \"platform=iOS Simulator,name=${CDV_IOS_SIM:-iPhone 16e}\" -derivedDataPath \"`mktemp -d 2>/dev/null || mktemp -d -t 'cordova-ios'`\"",
-    "preobjc-tests": "killall Simulator || true",
-    "unit-tests": "jasmine --config=tests/spec/unit.json",
+    "test": "npm run cover && npm run test:xcode",
+    "test:unit": "jasmine --config=tests/spec/unit.json",
+    "test:xcode": "xcodebuild -quiet test -workspace tests/cordova-ios.xcworkspace -scheme CordovaTestApp -destination \"platform=iOS Simulator,name=${CDV_IOS_SIM:-iPhone 16e}\" -destination-timeout 300 -derivedDataPath \"`mktemp -d 2>/dev/null || mktemp -d -t 'cordova-ios'`\"",
+    "cover": "c8 npm run test:unit",
     "lint": "eslint ."
   },
   "author": "Apache Software Foundation",
@@ -30,22 +28,23 @@
     "@cordova/eslint-config": "^6.0.0",
     "c8": "^10.1.3",
     "cordova-js": "^6.1.0",
-    "jasmine": "^5.2.0",
-    "rewire": "^9.0.0",
-    "tmp": "^0.2.3"
+    "jasmine": "^5.12.0",
+    "rewire": "^9.0.1",
+    "tmp": "^0.2.5"
   },
   "engines": {
-    "node": ">=20.9.0"
+    "node": "^20.17.0 || >=22.9.0"
   },
   "dependencies": {
+    "bplist-parser": "^0.3.2",
     "cordova-common": "^6.0.0",
     "elementtree": "^0.1.7",
     "execa": "^5.1.1",
-    "ios-sim": "^8.0.2",
-    "nopt": "^8.1.0",
-    "plist": "^3.0.6",
-    "semver": "^7.4.0",
-    "which": "^5.0.0",
+    "nopt": "^9.0.0",
+    "plist": "^3.1.0",
+    "semver": "^7.7.3",
+    "simctl": "^3.0.0",
+    "which": "^6.0.0",
     "xcode": "^3.0.1"
   },
   "c8": {
